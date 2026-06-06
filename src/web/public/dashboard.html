@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarang Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>Tarang</h2>
+            </div>
+            
+            <div class="user-profile">
+                <img id="userAvatar" src="" alt="User Avatar">
+                <span id="userName">Loading...</span>
+            </div>
+
+            <div class="guild-section">
+                <h3>Your Servers</h3>
+                <ul id="guildList" class="guild-list">
+                    <!-- Guild items will be injected here -->
+                </ul>
+            </div>
+
+            <div class="node-section">
+                <h3>Nodes</h3>
+                <ul id="nodeList" class="node-list">
+                    <!-- Node stats will be injected here -->
+                </ul>
+            </div>
+            <a href="/logout" class="logout-btn"><i data-lucide="log-out"></i> Logout</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h2 id="activeGuildName">Select a server</h2>
+                <div class="search-bar">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchInput" placeholder="Search for songs or paste URL...">
+                    <div id="searchResults" class="search-results hidden"></div>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Now Playing Area -->
+                <div class="now-playing-panel glass-panel">
+                    <div class="album-art">
+                        <img id="npThumbnail" src="https://via.placeholder.com/400" alt="Album Art">
+                    </div>
+                    <div class="track-info">
+                        <h3 id="npTitle">No song playing</h3>
+                        <p id="npAuthor">--</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <span id="timeCurrent">0:00</span>
+                        <input type="range" id="progressBar" min="0" max="100" value="0">
+                        <span id="timeTotal">0:00</span>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="controls">
+                        <button id="btnShuffle" class="control-btn" title="Shuffle"><i data-lucide="shuffle"></i></button>
+                        <button id="btnStop" class="control-btn" title="Stop"><i data-lucide="square"></i></button>
+                        <button id="btnPlayPause" class="control-btn play-btn" title="Play/Pause"><i data-lucide="play"></i></button>
+                        <button id="btnSkip" class="control-btn" title="Skip"><i data-lucide="skip-forward"></i></button>
+                        <button id="btnLoop" class="control-btn" title="Loop"><i data-lucide="repeat"></i><span id="loopState" class="loop-badge">N</span></button>
+                    </div>
+
+                    <!-- Volume -->
+                    <div class="volume-control">
+                        <i data-lucide="volume-2"></i>
+                        <input type="range" id="volumeSlider" min="0" max="200" value="100">
+                        <span id="volValue">100%</span>
+                    </div>
+                </div>
+
+                <!-- Queue List -->
+                <div class="queue-panel glass-panel">
+                    <h3>Up Next</h3>
+                    <ul id="queueList" class="queue-list">
+                        <!-- Queue items -->
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="/js/dashboard.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
