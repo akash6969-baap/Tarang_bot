@@ -1,3 +1,5 @@
+import { MessageFlags } from 'discord.js';
+
 export class CommandContext {
     constructor(payload, args = []) {
         this.isInteraction = !payload.author;
@@ -73,7 +75,9 @@ export class CommandContext {
             // For messages, send a temporary processing message
             // Unless it's ephemeral (prefix commands can't be ephemeral, so we just ignore the ephemeral flag for the temporary message or skip it)
             if (!options.ephemeral) {
-                this.replyMessage = await this.payload.reply('⏳ Processing...');
+                this.replyMessage = await this.payload.reply({
+                    content: '⏳ Processing...'
+                });
             }
         }
     }
@@ -83,9 +87,23 @@ export class CommandContext {
         if (this.isInteraction) {
             return await this.payload.reply(options);
         } else {
-            // Message reply
-            const safeOptions = { ...options };
-            delete safeOptions.flags; // Remove interaction-specific flags
+            let safeOptions = typeof options === 'string' ? { content: options } : { ...options };
+            if (safeOptions.components && !safeOptions.flags) {
+                safeOptions.flags = [MessageFlags.IsComponentsV2];
+            }
+            
+            let hasV2Flag = false;
+            if (safeOptions.flags) {
+                if (Array.isArray(safeOptions.flags)) {
+                    hasV2Flag = safeOptions.flags.includes(MessageFlags.IsComponentsV2);
+                } else {
+                    hasV2Flag = (safeOptions.flags & MessageFlags.IsComponentsV2) !== 0;
+                }
+            }
+
+            if (hasV2Flag) {
+                delete safeOptions.content; // Discord API: content cannot be used with IsComponentsV2
+            }
             this.replyMessage = await this.payload.reply(safeOptions);
             return this.replyMessage;
         }
@@ -95,18 +113,25 @@ export class CommandContext {
         if (this.isInteraction) {
             return await this.payload.editReply(options);
         } else {
-            // If we're transitioning a message to V2 components, we MUST clear legacy fields like content
-            const safeOptions = { ...options };
-            delete safeOptions.flags; // Remove interaction-specific flags
+            let safeOptions = typeof options === 'string' ? { content: options } : { ...options };
             
-            if (safeOptions.components && safeOptions.content === undefined) {
-                safeOptions.content = null;
+            // Discord API does not allow editing a V1 text message into a V2 component message.
+            // So if we have V2 components, we delete the "Processing..." message and send a new one.
+            if (safeOptions.components) {
+                safeOptions.flags = [MessageFlags.IsComponentsV2];
+                delete safeOptions.content;
+                if (this.replyMessage) {
+                    await this.replyMessage.delete().catch(() => {});
+                    this.replyMessage = null;
+                }
+                return await this.reply(safeOptions);
             }
 
+            delete safeOptions.flags; 
             if (this.replyMessage) {
                 return await this.replyMessage.edit(safeOptions);
             } else {
-                return await this.reply(safeOptions);
+                return await this.reply(options);
             }
         }
     }
