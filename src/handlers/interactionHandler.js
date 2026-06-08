@@ -67,6 +67,7 @@ export async function handleInteraction(interaction, client) {
         } else if (customId === 'music_volume') {
             const vol = parseInt(interaction.values[0]);
             player.setVolume(vol);
+            player.volume = vol; // Force synchronous update for the UI rebuild
             title = `${emojis.music} Volume Updated`;
             desc = `Volume set to **${vol}%**`;
         } else if (customId === 'music_queue') {
@@ -91,9 +92,9 @@ export async function handleInteraction(interaction, client) {
         if (customId.startsWith('music_') && player && player.queue.current) {
             if (interaction.message) {
                 await interaction.update({
-                    flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                    flags: MessageFlags.IsComponentsV2,
                     components: [buildNowPlaying(player.queue.current, player)]
-                }).catch(() => {});
+                }).catch(err => console.error('[Interaction Update Error]:', err));
             }
         } else if (!interaction.replied) {
             await interaction.reply({

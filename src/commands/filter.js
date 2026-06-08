@@ -42,37 +42,43 @@ export default {
         ),
         
     async execute(interaction, client) {
+        await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
+
+        if (!(await db.isPremiumServer(interaction.guildId || interaction.guild?.id))) {
+            return interaction.editReply({ 
+                flags: MessageFlags.IsComponentsV2,
+                components: [createErrorContainer('Audio Filters are a **Premium Server** exclusive feature. Upgrade this server to unlock them!')] 
+            });
+        }
+
         const player = client.kazagumo.players.get(interaction.guildId || interaction.guild?.id);
         if (!player || !player.playing) {
-            return interaction.reply({ 
-                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+            return interaction.editReply({ 
+                flags: MessageFlags.IsComponentsV2,
                 components: [createErrorContainer('There is nothing playing right now.')] 
             });
         }
 
         const memberChannel = interaction.member?.voice?.channel;
         if (!memberChannel || memberChannel.id !== player.voiceId) {
-            return interaction.reply({ 
-                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+            return interaction.editReply({ 
+                flags: MessageFlags.IsComponentsV2,
                 components: [createErrorContainer('You must be in the same voice channel as me.')] 
             });
         }
 
-        // For text commands, the option might not be properly mapped if we pass it manually, 
-        // but CommandContext handles it. However, if they typed `!lofi`, the eventHandler
-        // will pass 'lofi' as args[0] which maps to getString('type').
         const type = interaction.options.getString('type')?.toLowerCase();
 
         if (!filters[type]) {
-            return interaction.reply({ 
-                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+            return interaction.editReply({ 
+                flags: MessageFlags.IsComponentsV2,
                 components: [createErrorContainer('Invalid filter selected.')] 
             });
         }
 
         if (type === 'reset') {
             player.shoukaku.clearFilters();
-            return interaction.reply({ 
+            return interaction.editReply({ 
                 flags: MessageFlags.IsComponentsV2,
                 components: [createSuccessContainer('🎛️ Filters Reset', 'All audio filters have been cleared.')]
             });
@@ -80,7 +86,7 @@ export default {
 
         player.shoukaku.setFilters(filters[type]);
 
-        await interaction.reply({ 
+        await interaction.editReply({ 
             flags: MessageFlags.IsComponentsV2,
             components: [createSuccessContainer('🎛️ Filter Applied', `Successfully applied the **${type}** filter.`)]
         });

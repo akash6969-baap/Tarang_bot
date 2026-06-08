@@ -5,11 +5,19 @@ const guildSchema = new mongoose.Schema({
     prefix: { type: String, default: '/' },
     djRole: { type: String, default: null },
     twentyFourSeven: { type: Boolean, default: false },
+    isPremiumServer: { type: Boolean, default: false },
     noprefixUsers: { type: [String], default: [] },
     noprefixRoles: { type: [String], default: [] }
 });
 
 export const GuildSettings = mongoose.model('GuildSettings', guildSchema);
+
+const globalPremiumSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    grantedAt: { type: Date, default: Date.now }
+});
+
+export const GlobalPremiumUser = mongoose.model('GlobalPremiumUser', globalPremiumSchema);
 
 const playlistSchema = new mongoose.Schema({
     userId: { type: String, required: true },
@@ -18,6 +26,14 @@ const playlistSchema = new mongoose.Schema({
 });
 
 export const UserPlaylist = mongoose.model('UserPlaylist', playlistSchema);
+
+const blacklistSchema = new mongoose.Schema({
+    targetId: { type: String, required: true, unique: true },
+    type: { type: String, required: true, enum: ['user', 'guild'] },
+    reason: { type: String, default: 'No reason provided' }
+});
+
+export const Blacklist = mongoose.model('Blacklist', blacklistSchema);
 
 export let isMongoConnected = false;
 

@@ -28,7 +28,19 @@ const shoukakuOptions = {
     moveOnDisconnect: true, // Auto-failover to another node
     resume: true, // Resume music automatically
     resumeTimeout: 60,
-    resumeByLibrary: true
+    resumeByLibrary: true,
+    nodeResolver: (nodes) => {
+        const onlineNodes = [...nodes.values()].filter(node => node.state === 1);
+        if (!onlineNodes.length) return undefined;
+        
+        const primaryNodes = onlineNodes.filter(n => !n.name.toLowerCase().includes('fallback'));
+        
+        primaryNodes.sort((a, b) => a.penalties - b.penalties);
+        onlineNodes.sort((a, b) => a.penalties - b.penalties);
+        
+        if (primaryNodes.length > 0) return primaryNodes[0];
+        return onlineNodes[0];
+    }
 };
 
 client.kazagumo = new Kazagumo({

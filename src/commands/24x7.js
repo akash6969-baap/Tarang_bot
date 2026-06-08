@@ -15,6 +15,13 @@ export default {
         ),
         
     async execute(interaction) {
+        if (!(await db.isPremiumServer(interaction.guildId))) {
+            return interaction.reply({ 
+                flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
+                components: [createErrorContainer('24/7 Mode is a **Premium Server** exclusive feature. Upgrade this server to unlock it!')] 
+            });
+        }
+
         const enable = interaction.options.getBoolean('enable');
         await db.set24x7(interaction.guild.id, enable);
         

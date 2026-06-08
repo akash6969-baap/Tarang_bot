@@ -19,7 +19,14 @@ const __dirname = dirname(__filename);
 export function startWebServer(client) {
     const app = express();
     const server = createServer(app);
-    const io = new Server(server);
+    const io = new Server(server, {
+        cors: {
+            origin: true,
+            credentials: true
+        }
+    });
+
+    const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
 
     setIo(io);
     setupSocketHandlers(io, client);
@@ -38,7 +45,8 @@ export function startWebServer(client) {
     }));
 
     app.set('trust proxy', 1);
-    app.use(session({
+    
+    const sessionMiddleware = session({
         secret: config.web.sessionSecret,
         resave: false,
         saveUninitialized: false,
@@ -47,7 +55,9 @@ export function startWebServer(client) {
             httpOnly: true,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
         }
-    }));
+    });
+
+    app.use(sessionMiddleware);
 
     app.use(cors({
         origin: true, // Allow any origin for now, can be tightened later
@@ -57,7 +67,19 @@ export function startWebServer(client) {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    app.use(express.static(join(__dirname, 'public')));
+    // Share session and passport with Socket.io
+    io.use(wrap(sessionMiddleware));
+    io.use(wrap(passport.initialize()));
+    io.use(wrap(passport.session()));
+
+    io.use((socket, next) => {
+        if (socket.request.user) {
+            next();
+        } else {
+            next(new Error('Unauthorized'));
+        }
+    });
+
     app.use(express.json());
 
     // Make client available to routes

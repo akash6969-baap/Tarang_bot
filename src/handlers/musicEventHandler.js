@@ -63,6 +63,29 @@ export function loadMusicEvents(client) {
 
     kazagumo.on('playerEmpty', async player => {
         const guildData = await db.getGuild(player.guildId);
+        
+        // Autoplay Logic
+        const autoplayEnabled = player.data.get('autoplay');
+        if (autoplayEnabled && player.queue.previous) {
+            try {
+                const previousTrack = player.queue.previous;
+                // Query Youtube for related songs using the author and title
+                const res = await kazagumo.search(`ytsearch:${previousTrack.author} ${previousTrack.title} related`, { requester: { id: client.user.id, username: 'Autoplay' } });
+                if (res && res.tracks.length > 0) {
+                    // Filter out the exact same song if possible
+                    const filtered = res.tracks.filter(t => t.uri !== previousTrack.uri);
+                    const tracksToChooseFrom = filtered.length > 0 ? filtered : res.tracks;
+                    // Pick a random track from the top 5 results to avoid repetitive loops
+                    const track = tracksToChooseFrom[Math.floor(Math.random() * Math.min(5, tracksToChooseFrom.length))];
+                    player.queue.add(track);
+                    player.play();
+                    return; // Skip the autoLeave timeout
+                }
+            } catch (err) {
+                logger.error('Autoplay failed to fetch track:', err);
+            }
+        }
+
         if (guildData.twentyFourSeven) {
             broadcastPlayerState(player.guildId);
             return;

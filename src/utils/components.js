@@ -24,8 +24,18 @@ export function createErrorContainer(errorMessage) {
 }
 
 export function createSuccessContainer(title, description) {
+    let finalTitle = title;
+    const trimmedTitle = title.trim();
+    const firstChar = trimmedTitle.charAt(0);
+    // Check if the title starts with a custom Discord emoji (<:name:id>) or a unicode emoji (non-ASCII character)
+    const startsWithEmoji = trimmedTitle.startsWith('<') || (firstChar && firstChar.match(/[^\x00-\x7F]/));
+    
+    if (!startsWithEmoji) {
+        finalTitle = `${emojis.success} ${title}`;
+    }
+
     return new ContainerBuilder()
-        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${emojis.success} ${title}`))
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`## ${finalTitle}`))
         .addSeparatorComponents(new SeparatorBuilder().setDivider(true))
         .addTextDisplayComponents(new TextDisplayBuilder().setContent(`> ${description}`));
 }
@@ -83,6 +93,7 @@ export function buildNowPlaying(track, player) {
                         { label: 'Medium (50%)', value: '50'  },
                         { label: 'Normal (75%)', value: '75'  },
                         { label: 'Full (100%)',  value: '100' },
+                        { label: 'High (125%)',  value: '125' },
                         { label: 'Loud (150%)',  value: '150' }
                     ])
             )

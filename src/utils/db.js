@@ -1,27 +1,37 @@
 import fs from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { GuildSettings, UserPlaylist, isMongoConnected } from './mongoose.js';
+import { GuildSettings, UserPlaylist, Blacklist, GlobalPremiumUser, isMongoConnected } from './mongoose.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const dbPath = join(__dirname, '../../data');
 const dbFile = join(dbPath, 'settings.json');
 const playlistsFile = join(dbPath, 'playlists.json');
+const blacklistFile = join(dbPath, 'blacklist.json');
+const globalPremiumFile = join(dbPath, 'globalpremium.json');
 
 // Ensure local JSON DB exists
 if (!fs.existsSync(dbPath)) fs.mkdirSync(dbPath, { recursive: true });
 if (!fs.existsSync(dbFile)) fs.writeFileSync(dbFile, JSON.stringify({}, null, 2));
 if (!fs.existsSync(playlistsFile)) fs.writeFileSync(playlistsFile, JSON.stringify({}, null, 2));
+if (!fs.existsSync(blacklistFile)) fs.writeFileSync(blacklistFile, JSON.stringify([], null, 2));
+if (!fs.existsSync(globalPremiumFile)) fs.writeFileSync(globalPremiumFile, JSON.stringify([], null, 2));
 
 let settingsCache = {};
 let playlistsCache = {};
+let blacklistCache = [];
+let globalPremiumCache = [];
 try {
     settingsCache = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
     playlistsCache = JSON.parse(fs.readFileSync(playlistsFile, 'utf8'));
+    blacklistCache = JSON.parse(fs.readFileSync(blacklistFile, 'utf8'));
+    globalPremiumCache = JSON.parse(fs.readFileSync(globalPremiumFile, 'utf8'));
 } catch (e) {
     settingsCache = {};
     playlistsCache = {};
+    blacklistCache = [];
+    globalPremiumCache = [];
 }
 
 function saveLocalDB() {
@@ -30,6 +40,14 @@ function saveLocalDB() {
 
 function saveLocalPlaylists() {
     fs.writeFileSync(playlistsFile, JSON.stringify(playlistsCache, null, 2));
+}
+
+function saveLocalBlacklist() {
+    fs.writeFileSync(blacklistFile, JSON.stringify(blacklistCache, null, 2));
+}
+
+function saveLocalGlobalPremium() {
+    fs.writeFileSync(globalPremiumFile, JSON.stringify(globalPremiumCache, null, 2));
 }
 
 // Wrapper to handle both Mongo (if connected) and Local JSON
@@ -42,7 +60,7 @@ export const db = {
         } else {
             // Local fallback
             if (!settingsCache[guildId]) {
-                settingsCache[guildId] = { prefix: '/', djRole: null, twentyFourSeven: false, noprefixUsers: [], noprefixRoles: [] };
+                settingsCache[guildId] = { prefix: '/', djRole: null, twentyFourSeven: false, isPremiumServer: false, noprefixUsers: [], noprefixRoles: [] };
                 saveLocalDB();
             }
             return settingsCache[guildId];
@@ -144,6 +162,75 @@ export const db = {
                 list.tracks = tracks;
                 saveLocalPlaylists();
             }
+        }
+    },
+    
+    // Global Blacklist Methods
+    isBlacklisted: async (targetId) => {
+        if (isMongoConnected) {
+            const data = await Blacklist.findOne({ targetId });
+            return !!data;
+        } else {
+            return blacklistCache.some(b => b.targetId === targetId);
+        }
+    },
+    addBlacklist: async (targetId, type, reason) => {
+        if (isMongoConnected) {
+            await Blacklist.findOneAndUpdate({ targetId }, { type, reason }, { upsert: true });
+        } else {
+            if (!blacklistCache.some(b => b.targetId === targetId)) {
+                blacklistCache.push({ targetId, type, reason });
+                saveLocalBlacklist();
+            }
+        }
+    },
+    removeBlacklist: async (targetId) => {
+        if (isMongoConnected) {
+            await Blacklist.findOneAndDelete({ targetId });
+        } else {
+            blacklistCache = blacklistCache.filter(b => b.targetId !== targetId);
+            saveLocalBlacklist();
+        }
+    },
+
+    // Dual Premium System Methods
+    isPremiumServer: async (guildId) => {
+        const guildData = await db.getGuild(guildId);
+        return !!guildData.isPremiumServer;
+    },
+    setPremiumServer: async (guildId, state) => {
+        if (isMongoConnected) {
+            await GuildSettings.findOneAndUpdate({ guildId }, { isPremiumServer: state }, { upsert: true });
+        } else {
+            const guild = await db.getGuild(guildId);
+            guild.isPremiumServer = state;
+            saveLocalDB();
+        }
+    },
+    isGlobalPremium: async (userId) => {
+        if (isMongoConnected) {
+            const data = await GlobalPremiumUser.findOne({ userId });
+            return !!data;
+        } else {
+            return globalPremiumCache.includes(userId);
+        }
+    },
+    addGlobalPremium: async (userId) => {
+        if (isMongoConnected) {
+            await GlobalPremiumUser.findOneAndUpdate({ userId }, { userId }, { upsert: true });
+        } else {
+            if (!globalPremiumCache.includes(userId)) {
+                globalPremiumCache.push(userId);
+                saveLocalGlobalPremium();
+            }
+        }
+    },
+    removeGlobalPremium: async (userId) => {
+        if (isMongoConnected) {
+            await GlobalPremiumUser.findOneAndDelete({ userId });
+        } else {
+            globalPremiumCache = globalPremiumCache.filter(id => id !== userId);
+            saveLocalGlobalPremium();
         }
     }
 };

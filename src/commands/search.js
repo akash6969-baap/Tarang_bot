@@ -9,6 +9,7 @@ import {
     MessageFlags 
 } from 'discord.js';
 import { createErrorContainer, createSuccessContainer } from '../utils/components.js';
+import { validateVoiceState } from '../utils/voiceValidator.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -22,14 +23,17 @@ export default {
         
     async execute(interaction, client) {
         const query = interaction.options.getString('query');
-        const member = interaction.member;
-
-        if (!member.voice.channel) {
+        
+        let player = client.kazagumo.players.get(interaction.guild.id);
+        const voiceError = validateVoiceState(interaction, player);
+        if (voiceError) {
             return interaction.reply({ 
                 flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
-                components: [createErrorContainer('You must be in a voice channel to use this command.')] 
+                components: [createErrorContainer(voiceError)] 
             });
         }
+        
+        const member = interaction.member;
 
         await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
 

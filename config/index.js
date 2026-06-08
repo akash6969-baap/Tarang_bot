@@ -49,6 +49,7 @@ export const config = {
         defaultVolume: parseInt(process.env.DEFAULT_VOLUME) || 100,
         autoLeaveTimeout: parseInt(process.env.AUTO_LEAVE_TIMEOUT) || 60000,
         logChannelId: process.env.LOG_CHANNEL_ID,
+        owners: process.env.OWNER_IDS ? process.env.OWNER_IDS.split(',').map(id => id.trim()) : [],
     },
     lavalinkNodes: getLavalinkNodes()
 };

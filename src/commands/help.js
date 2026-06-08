@@ -9,7 +9,7 @@ const buildHelpContainer = (category, client, user) => {
     if (category === 'home') {
         sectionContent = `## Welcome to ${client.user.username}\nHey **${user.username}**, I'm ${client.user.username}, your Music Companion.`;
     } else if (category === 'core') {
-        sectionContent = `## <:music:1512415487571660902> Core Music\n> \`/play\` \`/search\` \`/pause\` \`/stop\` \`/skip\` \`/previous\` \`/seek\` \`/nowplaying\` \`/lyrics\` \`/loop\` \`/shuffle\` \`/volume\``;
+        sectionContent = `## <:music:1512415487571660902> Core Music\n> \`/play\` \`/search\` \`/pause\` \`/resume\` \`/stop\` \`/skip\` \`/previous\` \`/seek\` \`/nowplaying\` \`/lyrics\` \`/loop\` \`/shuffle\` \`/volume\` \`/grab\` \`/join\` \`/rejoin\` \`/replay\` \`/disconnect\` \`/autoplay\` \`/mood\``;
     } else if (category === 'queue') {
         sectionContent = `## <:queue:1512415610372493332> Queue Management\n> \`/queue\` \`/remove\` \`/move\` \`/clear\` \`/skipto\``;
     } else if (category === 'playlists') {
@@ -18,6 +18,8 @@ const buildHelpContainer = (category, client, user) => {
         sectionContent = `## <:filters:1512415733970370610> Audio Filters\n> Use \`/filter <type>\` or simply type \`!<filter>\`\n> **Available:** \`3d\`, \`alienvibes\`, \`ambient\`, \`bass\`, \`bassboost\`, \`chillwave\`, \`china\`, \`chipmunk\`, \`dance\`, \`darthvader\`, \`daycore\`, \`doubletime\`, \`haunted\`, \`lofi\`, \`muffled\`, \`nightcore\`, \`reset\`, \`slowed\`, \`soft\`, \`softfocus\`, \`softguitar\`, \`space\`, \`underwater\`, \`warmpad\``;
     } else if (category === 'settings') {
         sectionContent = `## <:settings:1512415694891782156> Settings & Info\n> \`/settings\` \`/prefix\` \`/noprefix\` \`/djrole\` \`/24x7\` \`/ping\` \`/nodestatus\` \`/npstatus\` \`/uptime\` \`/stats\` \`/help\` \`/partner\``;
+    } else if (category === 'owner') {
+        sectionContent = `## <:owner:1496506958071726182> Owner Commands\n> \`/eval\` \`/blacklist\` \`/broadcast\` \`/leaveserver\` \`/serverlist\` \`/premium\` \`/setstatus\``;
     }
 
     const section = new SectionBuilder()
@@ -30,7 +32,7 @@ const buildHelpContainer = (category, client, user) => {
         container.addSeparatorComponents(new SeparatorBuilder().setDivider(true))
             .addTextDisplayComponents(new TextDisplayBuilder().setContent(
                 `> • Default Prefix: \`/\`\n` +
-                `> • Total Commands: \`60+\`\n` +
+                `> • Total Commands: \`${client.commands.size}\`\n` +
                 `> • Use \`/help\` to see all commands.\n\n` +
                 `__Use the dropdown menu below to explore categories.__\n\n` +
                 `### Categories\n` +
@@ -38,19 +40,20 @@ const buildHelpContainer = (category, client, user) => {
                 `> <:queue:1512415610372493332> \`:\` **Queue Management**\n` +
                 `> <:playlists:1512416108727242822> \`:\` **Custom Playlists**\n` +
                 `> <:filters:1512415733970370610> \`:\` **Audio Filters**\n` +
-                `> <:settings:1512415694891782156> \`:\` **Settings & Info**\n`
+                `> <:settings:1512415694891782156> \`:\` **Settings & Info**\n` +
+                `> <:owner:1496506958071726182> \`:\` **Owner Only**\n`
             ));
 
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('help_category')
             .setPlaceholder('Select Main Category')
             .addOptions(
-                new StringSelectMenuOptionBuilder().setLabel('Home').setValue('home').setEmoji('1512415433947480065').setDescription('Return to the main help menu'),
                 new StringSelectMenuOptionBuilder().setLabel('Core Music').setValue('core').setEmoji('1512415487571660902').setDescription('Basic music playback commands'),
                 new StringSelectMenuOptionBuilder().setLabel('Queue Management').setValue('queue').setEmoji('1512415610372493332').setDescription('Manage the current queue'),
                 new StringSelectMenuOptionBuilder().setLabel('Custom Playlists').setValue('playlists').setEmoji('1512416108727242822').setDescription('Manage your saved playlists'),
                 new StringSelectMenuOptionBuilder().setLabel('Audio Filters').setValue('filters').setEmoji('1512415733970370610').setDescription('Apply premium audio effects'),
-                new StringSelectMenuOptionBuilder().setLabel('Settings & Info').setValue('settings').setEmoji('1512415694891782156').setDescription('Bot configuration and statistics')
+                new StringSelectMenuOptionBuilder().setLabel('Settings & Info').setValue('settings').setEmoji('1512415694891782156').setDescription('Bot configuration and statistics'),
+                new StringSelectMenuOptionBuilder().setLabel('Owner Commands').setValue('owner').setEmoji('1496506958071726182').setDescription('Exclusive bot owner features')
             );
 
         const actionRow1 = new ActionRowBuilder().addComponents(selectMenu);

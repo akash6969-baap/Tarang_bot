@@ -1,5 +1,6 @@
 import { logger } from '../utils/logger.js';
 import { serializeTrack } from '../utils/musicUtils.js';
+import { checkVoicePermissions } from '../utils/voiceValidator.js';
 import lyricsFinder from 'lyrics-finder';
 
 export function setupSocketHandlers(io, client) {
@@ -98,24 +99,46 @@ export function setupSocketHandlers(io, client) {
         });
 
         socket.on('play_track', async (data) => {
-            const { guildId, uri, textChannelId, voiceChannelId, userId } = data;
+            const { guildId, uri } = data;
+            const userId = socket.request.user?.id;
+            
             let player = client.kazagumo.players.get(guildId);
             
             if (!player) {
-                if (!voiceChannelId || !textChannelId) {
-                    return socket.emit('error', 'Bot is not in a voice channel. Please use /play in discord first.');
+                const guild = client.guilds.cache.get(guildId);
+                if (!guild) {
+                    return socket.emit('error', 'Server not found.');
                 }
+                
+                const member = await guild.members.fetch(userId).catch(() => null);
+                const voiceChannelId = member?.voice?.channelId;
+                
+                if (!voiceChannelId) {
+                    return socket.emit('error', 'You must join a Voice Channel in Discord first!');
+                }
+                
+                const channel = client.channels.cache.get(voiceChannelId);
+                const permError = checkVoicePermissions(channel, guild.members.me);
+                if (permError) {
+                    return socket.emit('error', permError);
+                }
+                
+                const textChannel = guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me).has('SendMessages')) || guild.systemChannel;
+                if (!textChannel) {
+                    return socket.emit('error', 'I need permission to send messages in at least one text channel!');
+                }
+                
                 player = await client.kazagumo.createPlayer({
                     guildId,
-                    textId: textChannelId,
+                    textId: textChannel.id,
                     voiceId: voiceChannelId,
                     volume: client.config.bot.defaultVolume,
                     deaf: true
                 });
             }
 
-            const res = await client.kazagumo.search(uri, { requester: { id: userId, username: 'Web User', source: 'web' } });
-            if (res.tracks.length) {
+            const res = await client.kazagumo.search(uri, { requester: { id: userId, username: socket.request.user?.username || 'Web User', source: 'web' } });
+            if (res.tracks && res.tracks.length) {
                 player.queue.add(res.tracks[0]);
                 if (!player.playing && !player.paused) {
                     player.play();

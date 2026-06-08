@@ -1,13 +1,67 @@
 {
   "1439524152125030502": {
     "prefix": ".",
-    "djRole": "",
+    "djRole": "1449281360261808251",
     "twentyFourSeven": true
   },
   "1489672049822793858": {
     "prefix": "/",
     "djRole": null,
     "twentyFourSeven": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1476825003772084385": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1512681489156804729": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1494406902120059000": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1436619886603403274": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1509190295919661147": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1465264743588565043": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1496545679831601243": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
     "noprefixUsers": [],
     "noprefixRoles": []
   }

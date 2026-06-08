@@ -57,6 +57,10 @@ export class CommandContext {
             getSubcommand: () => {
                 if (this.isInteraction) return payload.options.getSubcommand(false);
                 return this.args[0] ? this.args[0].toLowerCase() : null;
+            },
+            getSubcommandGroup: () => {
+                if (this.isInteraction) return payload.options.getSubcommandGroup(false);
+                return null;
             }
         };
     }

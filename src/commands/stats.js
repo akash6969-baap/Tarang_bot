@@ -22,7 +22,7 @@ const getDuration = (ms) => {
 };
 
 const getBannerGallery = () => new MediaGalleryBuilder().addItems(
-    new MediaGalleryItemBuilder().setURL('https://cdn.discordapp.com/attachments/1506851584871632958/1512756398532984893/ChatGPT_Image_Jun_6_2026_03_21_59_PM.png?ex=6a253faf&is=6a23ee2f&hm=adbbdd09b60b9aa334c4637051ebd1467ca10376da4dfa6df0e24e52fdf2a77e')
+    new MediaGalleryItemBuilder().setURL('https://cdn.discordapp.com/attachments/1512823629765804193/1513532563355074680/ChatGPT_Image_Jun_8_2026_06_46_40_PM.png?ex=6a28128b&is=6a26c10b&hm=39b6f0877a449644bf7f24c2c5d238d587fb4a70c8b278feec35d0f44b5b3ab0')
 );
 
 const getStatsSelectMenu = () => new ActionRowBuilder().addComponents(
