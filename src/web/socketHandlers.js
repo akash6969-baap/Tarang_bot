@@ -91,7 +91,8 @@ export function setupSocketHandlers(io, client) {
                 // Fetch user from cache just in case we need requester
                 const user = client.users.cache.get(userId) || null;
                 const res = await client.kazagumo.search(query, { requester: user });
-                socket.emit('search_results', res.tracks.slice(0, 10).map(t => serializeTrack(t)));
+                // Increased limit from 10 to 30 tracks
+                socket.emit('search_results', res.tracks.slice(0, 30).map(t => serializeTrack(t)));
             } catch (error) {
                 logger.error('Search error via socket', error);
                 socket.emit('search_results', []);

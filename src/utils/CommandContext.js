@@ -84,7 +84,9 @@ export class CommandContext {
             return await this.payload.reply(options);
         } else {
             // Message reply
-            this.replyMessage = await this.payload.reply(options);
+            const safeOptions = { ...options };
+            delete safeOptions.flags; // Remove interaction-specific flags
+            this.replyMessage = await this.payload.reply(safeOptions);
             return this.replyMessage;
         }
     }
@@ -94,17 +96,17 @@ export class CommandContext {
             return await this.payload.editReply(options);
         } else {
             // If we're transitioning a message to V2 components, we MUST clear legacy fields like content
-            const isV2 = options?.flags === 1 << 13 || (Array.isArray(options?.flags) && options.flags.includes(1 << 13)); // 1 << 13 is MessageFlags.IsComponentsV2
-            // Note: MessageFlags.IsComponentsV2 is usually imported, but since we might not have it in CommandContext directly without importing, we check loosely.
-            // Actually, wait, let's just explicitly set content: null if components are provided without content
-            if (options.components && options.content === undefined) {
-                options.content = null;
+            const safeOptions = { ...options };
+            delete safeOptions.flags; // Remove interaction-specific flags
+            
+            if (safeOptions.components && safeOptions.content === undefined) {
+                safeOptions.content = null;
             }
 
             if (this.replyMessage) {
-                return await this.replyMessage.edit(options);
+                return await this.replyMessage.edit(safeOptions);
             } else {
-                return await this.reply(options);
+                return await this.reply(safeOptions);
             }
         }
     }

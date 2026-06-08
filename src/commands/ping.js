@@ -18,8 +18,8 @@ export default {
         .setDescription('Replies with detailed system diagnostics and latencies.'),
         
     async execute(interaction, client) {
-        await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
         const roundtripLatency = Date.now() - interaction.payload.createdTimestamp;
+        await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
 
         const mongoPing = await getMongoPing();
         const mongoText = mongoPing === -1 ? '`Offline`' : `\`${mongoPing}ms\``;
