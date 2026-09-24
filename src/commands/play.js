@@ -105,7 +105,7 @@ export default {
                     player.queue.add(track);
                 }
                 if (!player.playing && !player.paused) {
-                    await player.play().catch(err => console.error(`[PLAY ERROR] ${err}`));
+                    await player.play();
                 }
                 return interaction.editReply({ 
                     flags: MessageFlags.IsComponentsV2,
@@ -113,9 +113,10 @@ export default {
                 });
             } else {
                 const track = res.tracks[0];
-                player.queue.add(track);
                 if (!player.playing && !player.paused) {
-                    await player.play().catch(err => console.error(`[PLAY ERROR] ${err}`));
+                    await player.play(track);
+                } else {
+                    player.queue.add(track);
                 }
                 return interaction.editReply({ 
                     flags: MessageFlags.IsComponentsV2,
