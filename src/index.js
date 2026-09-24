@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+﻿import { Client, GatewayIntentBits } from 'discord.js';
 import { Connectors } from 'shoukaku';
 import { Kazagumo } from 'kazagumo';
 import { logger } from './utils/logger.js';
@@ -48,7 +48,7 @@ const shoukakuOptions = {
 };
 
 client.kazagumo = new Kazagumo({
-    defaultSearchEngine: "youtube",
+    defaultSearchEngine: "youtube_music",
     plugins: [
         new KazagumoSpotify({
             clientId: process.env.SPOTIFY_CLIENT_ID || '',
