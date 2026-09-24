@@ -57,17 +57,7 @@ export default {
         let res;
         try {
             console.log(`[DEBUG] Starting Kazagumo search for query: ${query}`);
-            
-            let searchTarget = query;
-            if (!query.startsWith('http://') && !query.startsWith('https://')) {
-                searchTarget = `ytmsearch:${query}`;
-            }
-
-            res = await client.kazagumo.search(searchTarget, { requester: member.user });
-            if (!res || !res.tracks || !res.tracks.length) {
-                res = await client.kazagumo.search(query, { requester: member.user });
-            }
-            
+            res = await client.kazagumo.search(query, { requester: member.user });
             console.log(`[DEBUG] Search completed, found ${res && res.tracks ? res.tracks.length : 0} tracks.`);
         } catch (e) {
             console.error(`[ERROR] Search error: ${e}`);
@@ -113,10 +103,9 @@ export default {
                 });
             } else {
                 const track = res.tracks[0];
+                player.queue.add(track);
                 if (!player.playing && !player.paused) {
-                    await player.play(track);
-                } else {
-                    player.queue.add(track);
+                    await player.play();
                 }
                 return interaction.editReply({ 
                     flags: MessageFlags.IsComponentsV2,

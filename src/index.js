@@ -48,7 +48,7 @@ const shoukakuOptions = {
 };
 
 client.kazagumo = new Kazagumo({
-    defaultSearchEngine: "youtube_music",
+    defaultSearchEngine: "youtube",
     plugins: [
         new KazagumoSpotify({
             clientId: process.env.SPOTIFY_CLIENT_ID || '',
