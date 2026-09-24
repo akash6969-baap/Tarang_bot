@@ -19,10 +19,10 @@ export default {
 
         try {
             const res = await client.kazagumo.search(query);
-            if (!res || !res.tracks.length) return interaction.respond([]);
+            if (!res || !res.tracks || !res.tracks.length) return interaction.respond([]);
 
             const choices = res.tracks.slice(0, 5).map(track => ({
-                name: ${track.title} - .substring(0, 100),
+                name: `${track.title} - ${track.author}`.substring(0, 100),
                 value: track.uri || track.title
             }));
 
@@ -37,7 +37,7 @@ export default {
         if (!query) {
             return interaction.reply({ 
                 flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
-                components: [createErrorContainer('Please provide a search query (e.g. !play <song name>).')] 
+                components: [createErrorContainer('Please provide a search query (e.g. `!play <song name>`).')] 
             });
         }
         
@@ -56,12 +56,11 @@ export default {
 
         let res;
         try {
-            console.log([DEBUG] Starting Kazagumo search for query: );
+            console.log(`[DEBUG] Starting Kazagumo search for query: ${query}`);
             
-            // Prefer ytmsearch for plain text to avoid standard YouTube IP blocks
             let searchTarget = query;
             if (!query.startsWith('http://') && !query.startsWith('https://')) {
-                searchTarget = ytmsearch:;
+                searchTarget = `ytmsearch:${query}`;
             }
 
             res = await client.kazagumo.search(searchTarget, { requester: member.user });
@@ -69,9 +68,9 @@ export default {
                 res = await client.kazagumo.search(query, { requester: member.user });
             }
             
-            console.log([DEBUG] Search completed, found  tracks.);
+            console.log(`[DEBUG] Search completed, found ${res && res.tracks ? res.tracks.length : 0} tracks.`);
         } catch (e) {
-            console.error([ERROR] Search error: );
+            console.error(`[ERROR] Search error: ${e}`);
             return interaction.editReply({ 
                 flags: MessageFlags.IsComponentsV2,
                 components: [createErrorContainer('There was an error searching for the song.')]
@@ -87,7 +86,7 @@ export default {
 
         player = client.kazagumo.players.get(interaction.guild.id);
         if (!player) {
-            console.log([DEBUG] Creating Kazagumo player...);
+            console.log(`[DEBUG] Creating Kazagumo player...`);
             player = await client.kazagumo.createPlayer({
                 guildId: interaction.guild.id,
                 textId: interaction.channel.id,
@@ -95,7 +94,7 @@ export default {
                 volume: client.config.bot.defaultVolume,
                 deaf: true
             });
-            console.log([DEBUG] Player created successfully.);
+            console.log(`[DEBUG] Player created successfully.`);
         } else {
             player.textId = interaction.channel.id;
         }
@@ -106,25 +105,25 @@ export default {
                     player.queue.add(track);
                 }
                 if (!player.playing && !player.paused) {
-                    await player.play().catch(err => console.error([PLAY ERROR] ));
+                    await player.play().catch(err => console.error(`[PLAY ERROR] ${err}`));
                 }
                 return interaction.editReply({ 
                     flags: MessageFlags.IsComponentsV2,
-                    components: [createSuccessContainer('Playlist Added', Added **** tracks from ****)]
+                    components: [createSuccessContainer('Playlist Added', `Added **${res.tracks.length}** tracks from **${res.playlistName}**`)]
                 });
             } else {
                 const track = res.tracks[0];
                 player.queue.add(track);
                 if (!player.playing && !player.paused) {
-                    await player.play().catch(err => console.error([PLAY ERROR] ));
+                    await player.play().catch(err => console.error(`[PLAY ERROR] ${err}`));
                 }
                 return interaction.editReply({ 
                     flags: MessageFlags.IsComponentsV2,
-                    components: [createSuccessContainer('Track Added', Added **** to the queue.)]
+                    components: [createSuccessContainer('Track Added', `Added **${track.title}** to the queue.`)]
                 });
             }
         } catch (playErr) {
-            console.error([ERROR] Playback execution failed: );
+            console.error(`[ERROR] Playback execution failed: ${playErr}`);
             return interaction.editReply({ 
                 flags: MessageFlags.IsComponentsV2,
                 components: [createErrorContainer('Failed to play the track on Lavalink node.')]
