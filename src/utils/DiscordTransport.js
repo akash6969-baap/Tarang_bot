@@ -32,8 +32,8 @@ export class DiscordTransport extends Transport {
     this.buffer = []; // Clear buffer
 
     // Truncate if it's too long for Discord's limit (approx 4000 limit for components)
-    if (content.length > 3900) {
-      content = content.substring(content.length - 3900); // Keep only the latest 3900 chars
+    if (content.length > 3800) {
+      content = content.substring(content.length - 3800); // Keep only the latest 3800 chars
     }
 
     const container = new ContainerBuilder()

@@ -96,7 +96,7 @@ export function loadEvents(client) {
                 }
             }
         } catch (error) {
-            logger.error('Failed to log guildCreate event:', error);
+            logger.warn('Failed to log guildCreate event:', error.message);
         }
     });
 
@@ -130,7 +130,7 @@ export function loadEvents(client) {
                 components: [container] 
             });
         } catch (error) {
-            logger.error(`Failed to send goodbye message to owner of ${guild.name}:`, error);
+            logger.warn(`Failed to send goodbye message to owner of ${guild.name}:`, error.message);
         }
 
         // --- Logging System ---
@@ -156,7 +156,7 @@ export function loadEvents(client) {
                 }
             }
         } catch (error) {
-            logger.error('Failed to log guildDelete event:', error);
+            logger.warn('Failed to log guildDelete event:', error.message);
         }
     });
 
@@ -168,7 +168,7 @@ export function loadEvents(client) {
 
         // If the bot itself was disconnected/kicked from the voice channel manually
         if (oldState.id === client.user.id && oldState.channelId && !newState.channelId) {
-            player.destroy();
+            try { player.destroy(); } catch (e) {}
             return;
         }
 
@@ -183,7 +183,7 @@ export function loadEvents(client) {
                         if (playerCheck && playerCheck.voiceId === oldState.channelId) {
                             const guildData = await db.getGuild(guildId);
                             if (!guildData.twentyFourSeven) {
-                                playerCheck.destroy();
+                                try { playerCheck.destroy(); } catch (e) {}
                                 const textChannel = client.channels.cache.get(playerCheck.textId);
                                 if (textChannel) {
                                     textChannel.send('Left the voice channel because it was empty.').catch(() => null);
@@ -204,7 +204,7 @@ export function loadEvents(client) {
                     return interaction.reply({ 
                         flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
                         components: [createErrorContainer('You or this server are blacklisted from using this bot.')] 
-                    });
+                    }).catch(() => {});
                 }
                 return;
             }
@@ -213,6 +213,15 @@ export function loadEvents(client) {
             if (!command) return;
 
             try {
+                // Ghost Player Check
+                if (interaction.guild) {
+                    const player = client.kazagumo.players.get(interaction.guild.id);
+                    const botChannel = interaction.guild.members.me?.voice?.channel;
+                    if (player && !botChannel) {
+                        player.destroy();
+                    }
+                }
+
                 if (interaction.isChatInputCommand()) {
                     const guildData = await db.getGuild(interaction.guildId);
                     const djRole = guildData?.djRole;
@@ -223,7 +232,7 @@ export function loadEvents(client) {
                             return interaction.reply({ 
                                 flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
                                 components: [createErrorContainer(`You need the <@&${djRole}> role to use this command!`)] 
-                            });
+                            }).catch(() => {});
                         }
                     }
                 }
@@ -252,6 +261,15 @@ export function loadEvents(client) {
             }
         } else if (interaction.isButton() || interaction.isStringSelectMenu()) {
             try {
+                // Ghost Player Check
+                if (interaction.guild) {
+                    const player = client.kazagumo.players.get(interaction.guild.id);
+                    const botChannel = interaction.guild.members.me?.voice?.channel;
+                    if (player && !botChannel) {
+                        player.destroy();
+                    }
+                }
+
                 await handleInteraction(interaction, client);
             } catch (error) {
                 logger.error('Error handling interaction:', error);
@@ -283,6 +301,13 @@ export function loadEvents(client) {
         }
 
         if (!usedPrefix && !isNoPrefix) return;
+
+        // Ghost Player Check
+        const player = client.kazagumo.players.get(message.guild.id);
+        const botChannel = message.guild.members.me?.voice?.channel;
+        if (player && !botChannel) {
+            player.destroy();
+        }
 
         const args = content.split(/ +/);
         let commandName = args.shift().toLowerCase();
@@ -333,16 +358,16 @@ export function loadEvents(client) {
             if (djRole && djCommands.includes(commandName)) {
                 if (!message.member.roles.cache.has(djRole) && !message.member.permissions.has('ManageGuild')) {
                     return message.reply({ 
-                        flags: [MessageFlags.IsComponentsV2],
+                        flags: MessageFlags.IsComponentsV2,
                         components: [createErrorContainer(`You need the <@&${djRole}> role to use this command!`)] 
-                    });
+                    }).catch(() => {});
                 }
             }
 
             const ctx = new CommandContext(message, args);
             await command.execute(ctx, client);
         } catch (error) {
-            logger.error('Error executing message command:', error);
+            logger.warn('Error executing message command:', error);
             const errPayload = {
                 flags: [MessageFlags.IsComponentsV2],
                 components: [createErrorContainer('There was an error while executing this command!')]

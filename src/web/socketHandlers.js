@@ -99,6 +99,54 @@ export function setupSocketHandlers(io, client) {
             }
         });
 
+        socket.on('voice-command', async (data) => {
+            const { guildId, command } = data;
+            const userId = socket.request.user?.id;
+            
+            const player = client.kazagumo.players.get(guildId);
+            if (!player) {
+                return socket.emit('voice-response', { success: false, message: 'Bot is not in a voice channel.' });
+            }
+
+            const cmd = command.toLowerCase().trim();
+            logger.info(`Voice command received from ${userId} in ${guildId}: ${cmd}`);
+
+            try {
+                if (cmd.startsWith('play ')) {
+                    const song = cmd.replace('play ', '').trim();
+                    const user = client.users.cache.get(userId) || null;
+                    const res = await client.kazagumo.search(song, { requester: user });
+                    
+                    if (!res || !res.tracks.length) {
+                        return socket.emit('voice-response', { success: false, message: 'Could not find the song.' });
+                    }
+                    
+                    const track = res.tracks[0];
+                    player.queue.add(track);
+                    if (!player.playing && !player.paused) player.play();
+                    
+                    socket.emit('voice-response', { success: true, message: `Added ${track.title} to queue.` });
+                } else if (cmd === 'pause') {
+                    if (!player.paused) player.pause(true);
+                    socket.emit('voice-response', { success: true, message: 'Music paused.' });
+                } else if (cmd === 'resume' || cmd === 'play') {
+                    if (player.paused) player.pause(false);
+                    socket.emit('voice-response', { success: true, message: 'Music resumed.' });
+                } else if (cmd === 'skip' || cmd === 'next') {
+                    player.skip();
+                    socket.emit('voice-response', { success: true, message: 'Skipped track.' });
+                } else if (cmd === 'stop') {
+                    player.destroy();
+                    socket.emit('voice-response', { success: true, message: 'Player stopped.' });
+                } else {
+                    socket.emit('voice-response', { success: false, message: 'Unknown command.' });
+                }
+            } catch (err) {
+                logger.error('Voice command error via socket', err);
+                socket.emit('voice-response', { success: false, message: 'Error executing voice command.' });
+            }
+        });
+
         socket.on('play_track', async (data) => {
             const { guildId, uri } = data;
             const userId = socket.request.user?.id;
@@ -124,9 +172,10 @@ export function setupSocketHandlers(io, client) {
                     return socket.emit('error', permError);
                 }
                 
-                const textChannel = guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me).has('SendMessages')) || guild.systemChannel;
+                // Use the Voice Channel's built-in text chat for messages instead of a random text channel
+                const textChannel = guild.channels.cache.get(voiceChannelId);
                 if (!textChannel) {
-                    return socket.emit('error', 'I need permission to send messages in at least one text channel!');
+                    return socket.emit('error', 'Voice channel not found!');
                 }
                 
                 player = await client.kazagumo.createPlayer({

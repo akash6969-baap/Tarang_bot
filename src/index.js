@@ -9,6 +9,10 @@ import { loadMusicEvents } from './handlers/musicEventHandler.js';
 import { startWebServer } from './web/server.js';
 import { connectMongo } from './utils/mongoose.js';
 import { connectRedis } from './utils/redisCache.js';
+import KazagumoSpotify from 'kazagumo-spotify';
+import KazagumoApple from 'kazagumo-apple';
+import KazagumoDeezer from 'kazagumo-deezer';
+import KazagumoJioSaavn from '@pixel_nomad/kazagumo-jiosaavn';
 
 const client = new Client({
     intents: [
@@ -45,6 +49,19 @@ const shoukakuOptions = {
 
 client.kazagumo = new Kazagumo({
     defaultSearchEngine: "youtube",
+    plugins: [
+        new KazagumoSpotify({
+            clientId: process.env.SPOTIFY_CLIENT_ID || '',
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
+            playlistPageLimit: 5,
+            albumPageLimit: 5,
+            searchLimit: 10,
+            searchMarket: 'IN',
+        }),
+        new KazagumoApple({ countryCode: 'in' }),
+        new KazagumoDeezer(),
+        new KazagumoJioSaavn()
+    ],
     send: (guildId, payload) => {
         const guild = client.guilds.cache.get(guildId);
         if (guild) guild.shard.send(payload);
@@ -67,7 +84,7 @@ init();
 
 // Anti-crash mechanism
 process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error(`Unhandled Rejection at: ${promise}, reason:`, reason);
 });
 
 process.on('uncaughtException', (err) => {

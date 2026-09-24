@@ -18,13 +18,13 @@ export default {
         }
 
         const track = player.queue.current;
-        const position = player.position;
-        const duration = track.length;
+        const position = Math.max(0, player.position || 0);
+        const duration = Math.max(1, track.length || 1); // Avoid division by zero entirely
         
-        const progress = Math.min(position / duration, 1);
+        const progress = Math.max(0, Math.min(position / duration, 1));
         const barLength = 15;
-        const completed = Math.floor(progress * barLength);
-        const remaining = barLength - completed;
+        const completed = Math.max(0, Math.min(Math.floor(progress * barLength), barLength));
+        const remaining = Math.max(0, barLength - completed);
         
         const progressBar = '▬'.repeat(completed) + '🔘' + '▬'.repeat(remaining);
 

@@ -40,7 +40,7 @@ export default {
 
         await interaction.deferReply({ flags: MessageFlags.IsComponentsV2 });
 
-        let player = client.kazagumo.players.get(interaction.guild.id);
+        player = client.kazagumo.players.get(interaction.guild.id);
         if (!player) {
             player = await client.kazagumo.createPlayer({
                 guildId: interaction.guild.id,
@@ -56,7 +56,6 @@ export default {
                     components: [createErrorContainer('You must be in the same voice channel as me.')] 
                 });
             }
-            player.textId = interaction.channel.id;
         }
 
         // We stored minimal track data in the database.

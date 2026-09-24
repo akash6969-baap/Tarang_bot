@@ -1,7 +1,7 @@
 import { emojis, emojiIds } from '../utils/emojis.js';
 import { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } from 'discord.js';
 import { db } from '../utils/db.js';
-import { createSuccessContainer } from '../utils/components.js';
+import { createSuccessContainer, createErrorContainer } from '../utils/components.js';
 
 export default {
     data: new SlashCommandBuilder()

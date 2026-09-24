@@ -54,7 +54,7 @@ export function buildNowPlaying(track, player) {
             new SectionBuilder()
                 .addTextDisplayComponents(
                     new TextDisplayBuilder().setContent(
-                        `> [**${track.title}**](${track.uri}) - \`${track.author}\`\n> Duration: \`${formatDuration(track.length)}\`\n> Requested by <@${track.requester.id}>`
+                        `> [**${track.title}**](${track.uri}) - \`${track.author}\`\n> Duration: \`${formatDuration(track.length)}\`\n> Requested by **${track.requester?.username || 'Autoplay'}**`
                     )
                 )
                 .setThumbnailAccessory(

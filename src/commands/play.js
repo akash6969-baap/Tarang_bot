@@ -56,7 +56,9 @@ export default {
 
         let res;
         try {
+            console.log(`[DEBUG] Starting Kazagumo search for query: ${query}`);
             res = await client.kazagumo.search(query, { requester: member.user });
+            console.log(`[DEBUG] Search completed, found ${res.tracks.length} tracks.`);
         } catch (e) {
             return interaction.editReply({ 
                 flags: MessageFlags.IsComponentsV2,
@@ -73,6 +75,7 @@ export default {
 
         player = client.kazagumo.players.get(interaction.guild.id);
         if (!player) {
+            console.log(`[DEBUG] Creating Kazagumo player...`);
             player = await client.kazagumo.createPlayer({
                 guildId: interaction.guild.id,
                 textId: interaction.channel.id,
@@ -80,7 +83,9 @@ export default {
                 volume: client.config.bot.defaultVolume,
                 deaf: true
             });
+            console.log(`[DEBUG] Player created successfully.`);
         } else {
+            // Always update the text channel to the latest channel where a command was used
             player.textId = interaction.channel.id;
         }
 

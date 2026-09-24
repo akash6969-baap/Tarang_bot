@@ -9,12 +9,16 @@
     "deploy": "node src/deploy-commands.js"
   },
   "dependencies": {
+    "@pixel_nomad/kazagumo-jiosaavn": "^1.0.7",
     "cors": "^2.8.6",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "express-session": "^1.18.0",
     "kazagumo": "^3.0.0",
+    "kazagumo-apple": "^2.0.2",
+    "kazagumo-deezer": "^2.0.2",
+    "kazagumo-spotify": "^2.1.1",
     "lyrics-finder": "^21.7.0",
     "mongoose": "^9.6.3",
     "passport": "^0.7.0",

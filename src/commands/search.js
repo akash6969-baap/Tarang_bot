@@ -88,7 +88,7 @@ export default {
             const selectedIndex = parseInt(i.values[0]);
             const track = tracks[selectedIndex];
 
-            let player = client.kazagumo.players.get(interaction.guild.id);
+            player = client.kazagumo.players.get(interaction.guild.id);
             if (!player) {
                 player = await client.kazagumo.createPlayer({
                     guildId: interaction.guild.id,
@@ -97,8 +97,6 @@ export default {
                     volume: client.config.bot.defaultVolume,
                     deaf: true
                 });
-            } else {
-                player.textId = interaction.channel.id;
             }
 
             player.queue.add(track);

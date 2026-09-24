@@ -64,5 +64,21 @@
     "isPremiumServer": false,
     "noprefixUsers": [],
     "noprefixRoles": []
+  },
+  "1512768820304019507": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
+  },
+  "1511412560006611095": {
+    "prefix": "/",
+    "djRole": null,
+    "twentyFourSeven": false,
+    "isPremiumServer": false,
+    "noprefixUsers": [],
+    "noprefixRoles": []
   }
 }

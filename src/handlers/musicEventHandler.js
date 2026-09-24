@@ -5,6 +5,7 @@ import { buildNowPlaying } from '../utils/components.js';
 import { getIo } from '../web/socketManager.js';
 import { config } from '../../config/index.js';
 import { db } from '../utils/db.js';
+import { handleAutoplay } from './autoplayManager.js';
 
 export function loadMusicEvents(client) {
     const kazagumo = client.kazagumo;
@@ -66,20 +67,17 @@ export function loadMusicEvents(client) {
         
         // Autoplay Logic
         const autoplayEnabled = player.data.get('autoplay');
-        if (autoplayEnabled && player.queue.previous) {
+        if (autoplayEnabled && player.queue.previous && player.queue.previous.length > 0) {
             try {
-                const previousTrack = player.queue.previous;
-                // Query Youtube for related songs using the author and title
-                const res = await kazagumo.search(`ytsearch:${previousTrack.author} ${previousTrack.title} related`, { requester: { id: client.user.id, username: 'Autoplay' } });
-                if (res && res.tracks.length > 0) {
-                    // Filter out the exact same song if possible
-                    const filtered = res.tracks.filter(t => t.uri !== previousTrack.uri);
-                    const tracksToChooseFrom = filtered.length > 0 ? filtered : res.tracks;
-                    // Pick a random track from the top 5 results to avoid repetitive loops
-                    const track = tracksToChooseFrom[Math.floor(Math.random() * Math.min(5, tracksToChooseFrom.length))];
-                    player.queue.add(track);
-                    player.play();
-                    return; // Skip the autoLeave timeout
+                const previousTracks = player.queue.previous;
+                const previousTrack = Array.isArray(previousTracks) ? previousTracks[previousTracks.length - 1] : previousTracks;
+                
+                if (!previousTrack) return;
+
+                // Pass to the new Advanced Autoplay Manager
+                const played = await handleAutoplay(client, player, previousTrack);
+                if (played) {
+                    return; // Skip the autoLeave timeout since we played something
                 }
             } catch (err) {
                 logger.error('Autoplay failed to fetch track:', err);
@@ -98,7 +96,14 @@ export function loadMusicEvents(client) {
             if (player && !player.queue.current) {
                 const updatedData = await db.getGuild(player.guildId);
                 if (!updatedData.twentyFourSeven) {
-                    player.destroy();
+                    try {
+                        const currentPlayer = client.kazagumo.players.get(player.guildId);
+                        if (currentPlayer && currentPlayer.state !== 3) { // 3 usually means DESTROYED
+                            currentPlayer.destroy();
+                        }
+                    } catch (e) {
+                        // Ignore already destroyed errors
+                    }
                 }
             }
         }, config.bot.autoLeaveTimeout);

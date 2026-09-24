@@ -70,7 +70,7 @@ export class CommandContext {
     async deferReply(options = {}) {
         this.deferred = true;
         if (this.isInteraction) {
-            return await this.payload.deferReply(options);
+            return await this.payload.deferReply(options).catch(() => {});
         } else {
             // For messages, send a temporary processing message
             // Unless it's ephemeral (prefix commands can't be ephemeral, so we just ignore the ephemeral flag for the temporary message or skip it)
@@ -85,7 +85,7 @@ export class CommandContext {
     async reply(options) {
         this.replied = true;
         if (this.isInteraction) {
-            return await this.payload.reply(options);
+            return await this.payload.reply(options).catch(() => {});
         } else {
             let safeOptions = typeof options === 'string' ? { content: options } : { ...options };
             if (safeOptions.components && !safeOptions.flags) {
@@ -111,7 +111,7 @@ export class CommandContext {
 
     async editReply(options) {
         if (this.isInteraction) {
-            return await this.payload.editReply(options);
+            return await this.payload.editReply(options).catch(() => {});
         } else {
             let safeOptions = typeof options === 'string' ? { content: options } : { ...options };
             
@@ -138,9 +138,9 @@ export class CommandContext {
 
     async followUp(options) {
         if (this.isInteraction) {
-            return await this.payload.followUp(options);
+            return await this.payload.followUp(options).catch(() => {});
         } else {
-            return await this.payload.channel.send(options);
+            return await this.payload.channel.send(options).catch(() => {});
         }
     }
 }
